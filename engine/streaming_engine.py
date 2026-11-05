@@ -4,11 +4,13 @@ from typing import List
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from pydantic import BaseModel
 from engine.agent_swarm import OmniSentinelSwarm
+from engine.neo4j_connector import OmniNeo4jStore
 
 app = FastAPI(title="Omni-Sentinel Financial Forensics Gateway", version="1.0.0")
 
-# Initialize Agent Swarm
+# Initialize Agent Swarm & Neo4j Persistent Store
 swarm = OmniSentinelSwarm()
+db_store = OmniNeo4jStore()
 
 # WebSocket Connection Manager for Live Telemetry
 class ConnectionManager:
@@ -46,17 +48,14 @@ def health_check():
 async def ingest_transaction(tx: TransactionPayload):
     """
     Ingests a live transaction, calculates risk via GNN heuristics, 
-    and dispatches the LangGraph agent swarm if high-risk.
+    dispatches the LangGraph agent swarm, and persists dossiers to Neo4j.
     """
-    # Simulate GNN real-time scoring based on transaction characteristics
-    # (In production, this feeds into our trained GraphSAGE model tensors)
-    simulated_risk_score = 0.92 if tx.amount > 40000 or tx.source_node in [45, 88] else 0.15
+    simulated_risk_score = 0.92 if tx.amount > 40000 or tx.source_node in [45, 88, 422] else 0.15
     
     alert_triggered = simulated_risk_score > 0.8
     dossier = None
 
     if alert_triggered:
-        # Automatically trigger the LangGraph multi-agent forensic investigation swarm
         agent_result = swarm.run_investigation(node_id=tx.source_node, risk_score=simulated_risk_score)
         dossier = {
             "target_node": agent_result["node_id"],
@@ -66,6 +65,12 @@ async def ingest_transaction(tx: TransactionPayload):
             "action": agent_result["action_recommended"],
             "logs": agent_result["investigation_logs"]
         }
+        
+        # Automatically persist the forensic dossier to Neo4j graph storage
+        try:
+            db_store.save_forensic_dossier(tx.source_node, dossier)
+        except Exception as e:
+            print(f"⚠️ [Neo4j Persistence Notice]: {e}")
         
         # Broadcast live alert to all connected dashboard clients via WebSocket
         await manager.broadcast({
@@ -87,7 +92,6 @@ async def websocket_telemetry_endpoint(websocket: WebSocket):
     await manager.connect(websocket)
     try:
         while True:
-            # Keep connection alive and listen for client heartbeats/messages
             data = await websocket.receive_text()
             await websocket.send_text(json.dumps({"received": data, "status": "connected"}))
     except WebSocketDisconnect:
