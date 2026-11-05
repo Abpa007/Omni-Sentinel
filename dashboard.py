@@ -71,3 +71,7 @@ if simulate_btn:
                 
         except requests.exceptions.ConnectionError:
             st.error("❌ Connection refused! Ensure your FastAPI server is running (`python main_step3.py`).")
+
+st.markdown("---")
+st.subheader("🔌 Real-Time WebSocket Telemetry Gateway Status")
+st.info("The FastAPI backend is broadcasting live security events on `ws://127.0.0.1:8000/ws/telemetry`. All high-risk triage triggers are pushed instantly across the network mesh.")
