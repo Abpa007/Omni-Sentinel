@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  neo4j:
+    image: neo4j:5.11.0
+    container_name: omni_neo4j
+    ports:
+      - "7474:7474"
+      - "7687:7687"
+    environment:
+      - NEO4J_AUTH=neo4j/password
+    volumes:
+      - neo4j_data:/data
+
+  fastapi-backend:
+    build: .
+    container_name: omni_fastapi
+    ports:
+      - "8000:8000"
+    environment:
+      - NEO4J_URI=bolt://neo4j:7687
+      - NEO4J_USER=neo4j
+      - NEO4J_PASSWORD=password
+    depends_on:
+      - neo4j
+    command: python main_step3.py
+
+  streamlit-dashboard:
+    build: .
+    container_name: omni_streamlit
+    ports:
+      - "8501:8501"
+    environment:
+      - API_BASE_URL=http://fastapi-backend:8000
+    depends_on:
+      - fastapi-backend
+    command: python -m streamlit run dashboard.py --server.address=0.0.0.0
+
+volumes:
+  neo4j_data:
