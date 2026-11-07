@@ -1,0 +1,5 @@
+{
+    "powerquery.client.additionalSymbolsDirectories": [
+        "d:/Data Science with AIML projects/omni-sentinel/.vscode/excel-pq-symbols"
+    ]
+}
