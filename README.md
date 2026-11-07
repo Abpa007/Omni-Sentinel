@@ -92,5 +92,5 @@ git commit -m "docs: document system architecture, dashboard telemetry, and node
 
 ---
 
-## 🛡️ License
-Distributed under the MIT License. See `LICENSE` for more information.
+Credit - Abhay Panchal
+Email - abhaypanchal095@gmail.com
