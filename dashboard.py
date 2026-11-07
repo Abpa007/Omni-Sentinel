@@ -197,3 +197,12 @@ with tab3:
 [08:14:03] [INFO] Agent-3 (Persistence): Writing cypher transaction node to Neo4j database...
 [08:14:03] [SUCCESS] Agent-3 (Persistence): Successfully logged relationship: (Acc_1102)-[:TRANSFER]->(Acc_6641).
     """, language="bash")
+    
+    
+    
+    
+    
+    
+    
+    
+    
